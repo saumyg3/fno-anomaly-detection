@@ -98,15 +98,17 @@ Combines all three models with weights (0.4, 0.4, 0.2). A record is flagged as a
 
 ## ⚙️ Feature Engineering
 
-| Feature | Description | Why It Matters |
-|---|---|---|
-| `oi_change_rate` | CHG_IN_OI / OPEN_INT | Sudden OI shifts signal position buildup |
-| `contracts_zscore` | Z-score of volume per symbol | Flags statistically unusual volume |
-| `rolling_volatility` | 7-day std of price range | Captures volatility regime changes |
-| `pcr` | Put OI / Call OI per day | Extreme PCR = market sentiment anomaly |
-| `is_expiry_week` | Binary: days to expiry ≤ 7 | Expiry weeks have structurally different behaviour |
-| `value_per_contract` | VAL_INLAKH / CONTRACTS | Unusual trade sizing = concentration risk |
-| `oi_surge` | CHG_IN_OI vs 7-day rolling mean | Detects sudden OI accumulation vs baseline |
+7 features engineered from raw OHLCV + OI data, each designed to capture a specific dimension of anomalous trading behaviour in the F&O market.
+
+| Feature | Formula | Financial Meaning | Why It Detects Anomalies |
+|---|---|---|---|
+| `oi_change_rate` | CHG_IN_OI / OPEN_INT | Rate of open interest change relative to total outstanding contracts | Sudden large OI shifts indicate aggressive position buildup — often precedes informed trading or manipulation |
+| `contracts_zscore` | (volume - mean) / std per symbol | How many standard deviations today's volume is from that symbol's historical average | Statistically extreme volume (Z > 3) signals unusual market participation |
+| `rolling_volatility` | 7-day std of (HIGH - LOW) | Realized volatility of the price range over the last week | Volatility regime shifts — calm markets suddenly becoming erratic — are a key anomaly signal |
+| `pcr` | Total Put OI / Total Call OI per day | Put-Call Ratio — a market sentiment indicator | PCR < 0.5 = extreme bullishness, PCR > 1.5 = extreme bearishness. Both extremes are anomalous |
+| `is_expiry_week` | 1 if days to expiry ≤ 7, else 0 | Binary flag for the final week before contract expiry | Trading behaviour changes structurally near expiry — rollover activity, pinning, gamma squeezes |
+| `value_per_contract` | VAL_INLAKH / CONTRACTS | Average rupee value per contract traded | Unusually high value-per-contract indicates large institutional orders or block trades — a concentration risk signal |
+| `oi_surge` | CHG_IN_OI / 7-day rolling mean of CHG_IN_OI | How much today's OI change deviates from the recent baseline | Detects sudden OI accumulation that is anomalous relative to that symbol's own recent history |
 
 ---
 
