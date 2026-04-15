@@ -1,0 +1,10 @@
+venv/
+data/
+*.csv
+*.parquet
+__pycache__/
+*.pt
+*.pkl
+.DS_Store
+*.dylib
+*.so
