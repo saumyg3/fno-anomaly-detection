@@ -2,6 +2,11 @@
 
 > 3-model ensemble anomaly detection system trained on 2.5M+ real NSE/BSE/MCX Futures & Options trading records. Detects unusual option activity using engineered financial features and compares Isolation Forest, LSTM Autoencoder, and DBSCAN approaches.
 
+![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
+![PyTorch](https://img.shields.io/badge/PyTorch-GPU-ee4c2c?style=flat-square&logo=pytorch)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.x-f7931e?style=flat-square&logo=scikit-learn)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+
 ---
 
 ## 🧠 What Is This?
@@ -16,6 +21,19 @@ The system flags unusual trading activity that could indicate:
 
 ---
 
+## 🌏 Market Context
+
+This project analyzes the **Indian derivatives market** — one of the largest and most liquid options markets in the world. NSE (National Stock Exchange) consistently ranks among the **top 3 global exchanges by options volume**.
+
+Key instruments in this dataset:
+- **NIFTY** — India's benchmark index (equivalent to S&P 500)
+- **BANKNIFTY** — Banking sector index, the most volatile and actively traded options contract in India
+- **Individual stocks** — RELIANCE, INFY, HDFC, SBIN and 300+ others
+
+**Why this matters for US-based roles:** The anomaly detection techniques, feature engineering patterns, and ML architecture used here are **directly transferable** to US equity and options markets (SPX, VIX, individual equities). The underlying market microstructure — OI dynamics, PCR signals, expiry effects — behaves similarly across global derivatives markets.
+
+The dataset covers **August–October 2019**, a period that included the Saudi Aramco oil attack (Sept 14, 2019) — a real geopolitical shock that caused measurable market stress, which our unsupervised models detected without any labeled data.
+
 ## 🔍 Key Results
 
 | Model | Anomalies Detected | Rate |
@@ -24,7 +42,7 @@ The system flags unusual trading activity that could indicate:
 | LSTM Autoencoder | 241,421 | 9.7% |
 | DBSCAN | 842 (subsample) | 1.7% |
 | **Ensemble** | **78,404** | **3.1%** |
-| All 3 agree | 651 | High confidence |
+| All 3 models agree | 651 | High confidence |
 
 ### 🗓️ Real-World Validation
 The model flagged **September 20, 2019** as the most anomalous NIFTY trading day — 4 days after the **Saudi Aramco oil attack** (Sept 14, 2019) caused global market volatility. The system detected the downstream market stress without any labeled training data.
@@ -33,7 +51,7 @@ The model flagged **September 20, 2019** as the most anomalous NIFTY trading day
 BANKNIFTY showed the highest anomaly rate (19%), consistent with its position as India's most volatile options index.
 
 ### 🔑 Feature Importance
-`value_per_contract` (0.57 correlation) emerged as the strongest anomaly signal, indicating that unusual money concentration per trade is the most reliable red flag — more predictive than raw OI or volume alone.
+`value_per_contract` (0.57 correlation) emerged as the strongest anomaly signal — unusual money concentration per trade is more predictive than raw OI or volume alone.
 
 ---
 
@@ -45,13 +63,8 @@ Raw F&O CSV (2.5M rows)
         ▼
 ┌─────────────────────────────────────┐
 │        Feature Engineering          │
-│  • OI Change Rate                   │
-│  • Volume Z-Score (per symbol)      │
-│  • Rolling 7-day Volatility         │
-│  • Put-Call Ratio (PCR)             │
-│  • Days to Expiry / Expiry Week     │
-│  • Value per Contract               │
-│  • OI Surge (vs rolling mean)       │
+│  7 financial features engineered    │
+│  from raw OHLCV + OI data           │
 └─────────────────────────────────────┘
         │
         ▼
@@ -117,10 +130,10 @@ Combines all three models with weights (0.4, 0.4, 0.2). A record is flagged as a
 ```
 fno-anomaly-detection/
 ├── src/
-│   ├── features.py          # Feature engineering pipeline
-│   └── models.py            # All 3 models + ensemble
+│   ├── features.py                   # Feature engineering pipeline
+│   └── models.py                     # All 3 models + ensemble logic
 ├── notebooks/
-│   └── FnO-Anomaly-Detection.ipynb   # Full Colab notebook
+│   └── FnO_Anomaly_Detection.ipynb   # Full end-to-end Colab notebook
 ├── results/
 │   ├── anomaly_detection_results.png # Model comparison charts
 │   └── feature_importance.png        # Feature correlation plot
@@ -131,36 +144,53 @@ fno-anomaly-detection/
 
 ---
 
-## 🚀 Getting Started
+## 🚀 How to Run
 
-### Prerequisites
-- Python 3.10+
-- GPU recommended for LSTM training (Google Colab T4 works great)
+### Option 1 — Google Colab (Recommended)
+The full pipeline is designed to run on Google Colab with a free T4 GPU. This is the recommended approach since training on 2.5M rows requires GPU acceleration.
 
-### Dataset
-Download from Kaggle: [NSE Future and Options Dataset 3M](https://www.kaggle.com/datasets/sunnysai12345/nse-future-and-options-dataset-3m)
+1. Open [notebooks/FnO_Anomaly_Detection.ipynb](notebooks/FnO_Anomaly_Detection.ipynb) in Google Colab
+2. Go to **Runtime → Change runtime type → T4 GPU**
+3. Download the dataset from Kaggle (see below) and upload it to Colab
+4. Run all cells in order — the full pipeline takes ~10 minutes on T4 GPU
 
-Place the CSV at `data/3mfanddo.csv`.
-
-### Install dependencies
+### Option 2 — Local (Feature Engineering only)
+The feature engineering step can run locally. Model training requires GPU for reasonable speed.
 
 ```bash
+# 1. Clone the repo
+git clone https://github.com/saumyg3/fno-anomaly-detection.git
+cd fno-anomaly-detection
+
+# 2. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # Mac/Linux
+
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### Run feature engineering
+# 4. Download dataset (see below) and place at data/3mfanddo.csv
 
-```bash
+# 5. Run feature engineering
 python src/features.py
-```
+# Output: data/featured.parquet
 
-### Train all models
-
-```bash
+# 6. Train models (GPU recommended)
 python src/models.py
+# Output: data/results.parquet + saved models
 ```
 
-Or run the full pipeline end-to-end in the Colab notebook.
+---
+
+## 📥 Dataset Setup
+
+1. Go to [NSE Future and Options Dataset 3M](https://www.kaggle.com/datasets/sunnysai12345/nse-future-and-options-dataset-3m) on Kaggle
+2. Click **Download dataset as zip (36 MB)**
+3. Unzip and place the CSV at:
+   - **Local:** `data/3mfanddo.csv`
+   - **Colab:** Upload directly when prompted
+
+The dataset contains **2,533,210 rows** of F&O trade records across NSE, BSE, and MCX exchanges from August–October 2019.
 
 ---
 
@@ -175,6 +205,11 @@ matplotlib
 plotly
 seaborn
 scipy
+```
+
+Install all:
+```bash
+pip install pandas numpy scikit-learn torch matplotlib plotly seaborn scipy
 ```
 
 ---
@@ -192,20 +227,20 @@ scipy
 ## 💡 Key Findings
 
 1. **value_per_contract** is the strongest anomaly signal (0.57 correlation) — unusual money per trade is more predictive than raw volume
-2. **Expiry weeks** and **rolling volatility** are equally important (0.40 each) — market structure matters
-3. **BANKNIFTY** has the highest anomaly rate (19%) — consistent with its volatility profile
+2. **Expiry weeks** and **rolling volatility** are equally important (0.40 each) — market structure matters as much as raw numbers
+3. **BANKNIFTY** has the highest anomaly rate (19%) — consistent with its volatility profile as India's most traded index
 4. The **ensemble outperforms** any single model by reducing false positives from LSTM's aggressive flagging while retaining Isolation Forest's precision
-5. **Sept 20, 2019** was the most anomalous NIFTY day — correlates with post-Aramco global volatility
+5. **Sept 20, 2019** was the most anomalous NIFTY day — correlates directly with post-Aramco global volatility, validating the model without labeled data
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Streamlit dashboard for real-time anomaly monitoring
+- [ ] Streamlit dashboard for interactive anomaly exploration
 - [ ] Live NSE data feed integration
 - [ ] Transformer-based sequence model (replace LSTM)
 - [ ] Alert system for high-confidence anomalies
-- [ ] Backtesting: do anomalies predict next-day returns?
+- [ ] Backtesting: do flagged anomalies predict next-day price moves?
 
 ---
 
@@ -224,4 +259,4 @@ MIT License — free to use, modify, and distribute.
 
 ---
 
-*Dataset: NSE/BSE/MCX F&O data (Aug–Oct 2019) via Kaggle. Models trained without any labeled anomaly ground truth — fully unsupervised.*
+*Dataset: NSE/BSE/MCX F&O data (Aug–Oct 2019) via Kaggle. All models trained without labeled anomaly ground truth — fully unsupervised.*
