@@ -2,11 +2,6 @@
 
 > 3-model ensemble anomaly detection system trained on 2.5M+ real NSE/BSE/MCX Futures & Options trading records. Detects unusual option activity using engineered financial features and compares Isolation Forest, LSTM Autoencoder, and DBSCAN approaches.
 
-![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
-![PyTorch](https://img.shields.io/badge/PyTorch-GPU-ee4c2c?style=flat-square&logo=pytorch)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-1.x-f7931e?style=flat-square&logo=scikit-learn)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-
 ---
 
 ## 🧠 What Is This?
